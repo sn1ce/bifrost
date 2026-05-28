@@ -3700,13 +3700,19 @@ func (provider *AzureProvider) buildPassthroughURL(key schemas.Key, path, rawQue
 	path = strings.Replace(path, "/openai/responses", "/openai/v1/responses", 1)
 	path = strings.Replace(path, "/openai/videos", "/openai/v1/videos", 1)
 
-	// v1 routes and Anthropic routes do not accept api-version — strip it if
-	if rawQuery != "" &&
-		(strings.HasPrefix(path, "/anthropic/") ||
-			strings.Contains(path, "/openai/v1/responses") ||
-			strings.HasPrefix(path, "/openai/v1/videos")) {
+	// v1 routes and Anthropic routes do not accept api-version — strip it if present.
+	if strings.HasPrefix(path, "/anthropic/") ||
+		strings.Contains(path, "/openai/v1/responses") ||
+		strings.HasPrefix(path, "/openai/v1/videos") {
 		if values, err := url.ParseQuery(rawQuery); err == nil {
 			values.Del("api-version")
+			rawQuery = values.Encode()
+		}
+	} else if strings.Contains(path, "/openai/deployments/") {
+		// Classic /deployments/ routes require api-version. Inject a default if absent.
+		values, err := url.ParseQuery(rawQuery)
+		if err == nil && values.Get("api-version") == "" {
+			values.Set("api-version", DefaultAzurePassthroughAPIVersion)
 			rawQuery = values.Encode()
 		}
 	}

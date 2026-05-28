@@ -2,6 +2,10 @@ package azure
 
 const AzureAnthropicAPIVersionDefault = "2023-06-01"
 
+// DefaultAzurePassthroughAPIVersion is the fallback api-version injected for classic
+// /deployments/ passthrough routes when the caller does not supply one.
+const DefaultAzurePassthroughAPIVersion = "2025-04-01-preview"
+
 type AzureModelCapabilities struct {
 	FineTune       bool `json:"fine_tune"`
 	Inference      bool `json:"inference"`
